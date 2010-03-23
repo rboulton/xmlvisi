@@ -45,7 +45,9 @@ counts:
      <attrib_name>{count}
     )
 
-It would be easy to extend the code
+It would be easy to extend the code to produce output in other formats, and to
+track other details of the XML contents (perhaps automatically recognising
+fields which containin only numeric or date contents).
 
 """
 
@@ -198,6 +200,8 @@ def dump_schema(schema):
     print schema.pformat(True)
 
 if __name__ == '__main__':
-    # Scan, with 
+    # Scan, with progress display
+    if len(sys.argv) < 2:
+        print "Usage: %s <xml filename>" % sys.argv[0]
     schema = scan(sys.argv[1], True)
     dump_schema(schema)
