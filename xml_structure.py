@@ -156,8 +156,14 @@ class ProgressFd(object):
         self.display()
         return result
 
-def scan(filename, progress=False):
+def scan(filename, progress=False, as_html=False):
     """Scan the contents of a file, and return a derived "schema".
+
+    If `progress` is True, report rough progress stats.
+
+    If `as_html` is True, expect HTML instead of XML.  This will result in
+    `progress` being much less accurate, and will cause the whole file to be
+    read into memory before being processed.
 
     """
     schema = SchemaElement('', '')
@@ -166,7 +172,13 @@ def scan(filename, progress=False):
     fd = open(filename)
     if progress:
         fd = ProgressFd(fd, os.path.getsize(filename))
-    for event, element in etree.iterparse(fd, events=events):
+    if as_html:
+        # iterparse doesn't allow us to specify the parser, so we have to fall
+        # back to parsing and using iterwalk on the DOM.
+        it = etree.iterwalk(etree.parse(fd, etree.HTMLParser()), events=events)
+    else:
+        it = etree.iterparse(fd, events=events)
+    for event, element in it:
         # Get tag, prefix and shorttag (which is the tag without namespace)
         tag = element.tag
         prefix = element.prefix
@@ -201,7 +213,12 @@ def dump_schema(schema):
 
 if __name__ == '__main__':
     # Scan, with progress display
-    if len(sys.argv) < 2:
-        print "Usage: %s <xml filename>" % sys.argv[0]
-    schema = scan(sys.argv[1], True)
+    as_html = False
+    if len(sys.argv) > 2:
+        if sys.argv[1] == '--html':
+            del sys.argv[1]
+            as_html=True
+    if len(sys.argv) != 2:
+        print "Usage: %s [--html] <xml filename>" % sys.argv[0]
+    schema = scan(sys.argv[1], True, as_html)
     dump_schema(schema)
