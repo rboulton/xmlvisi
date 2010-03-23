@@ -1,0 +1,7 @@
+XMLvisi
+=======
+
+Currently, this contains a basic tool to scan an XML file and display
+information about the elements it contains (what they are, what their children
+are, how often each element occurs as a child of another, and how often each
+attribute of an element occurs).
